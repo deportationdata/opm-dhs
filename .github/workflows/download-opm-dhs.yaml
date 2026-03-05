@@ -14,7 +14,7 @@ permissions:
 jobs:
 
   download:
-    runs-on: ubuntu-latest
+    runs-on: large-runner
 
     steps:
       - uses: actions/checkout@v4
