@@ -13,18 +13,52 @@ permissions:
 
 jobs:
 
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      new_data: ${{ steps.check.outputs.new_data }}
+
+    steps:
+      - uses: actions/checkout@v4
+        # No LFS needed — we only inspect filenames, not file contents
+
+      - name: Check for new OPM data
+        id: check
+        run: |
+          types="accessions separations employment"
+          current_yyyymm=$(date +%Y%m)
+          new_data=false
+
+          for type in $types; do
+            for year in $(seq 2021 $(date +%Y)); do
+              for month in $(seq 1 12); do
+                yyyymm=$(printf "%d%02d" $year $month)
+                [ "$yyyymm" -gt "$current_yyyymm" ] && continue
+                out="data/${type}-dhs-${yyyymm}.feather"
+                if [ ! -f "$out" ]; then
+                  url="https://data.opm.gov/api/blob/download/chunked/${type}_${yyyymm}_1.txt"
+                  status=$(curl -s -o /dev/null -w "%{http_code}" -r "0-0" "$url")
+                  if [ "$status" = "200" ] || [ "$status" = "206" ]; then
+                    echo "New data available: $type $yyyymm"
+                    new_data=true
+                    break 3
+                  fi
+                fi
+              done
+            done
+          done
+
+          echo "new_data=$new_data" >> $GITHUB_OUTPUT
+
   download:
+    needs: check
+    if: needs.check.outputs.new_data == 'true'
     runs-on: large-runner
 
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
-
-      # - name: Install system dependencies
-      #   run: |
-      #     sudo apt-get update -qq
-      #     sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
 
       - uses: r-lib/actions/setup-r@v2
 
