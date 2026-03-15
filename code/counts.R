@@ -1,12 +1,6 @@
 library(dplyr)
 library(purrr)
 library(arrow)
-library(stringr)
-
-get_subagency_count <- function(path) {
-  read_feather(path) |>
-    count(agency_subelement)
-}
 
 employment_df <-
   list.files(
@@ -16,14 +10,12 @@ employment_df <-
   ) |>
   set_names() |>
   map_dfr(read_feather, .id = "file") |>
-  count(agency_subelement, file, name = "n_employees") |>
+  group_by(agency_subelement, file) |>
+  summarise(n_employees = sum(as.integer(count)), .groups = "drop") |>
   mutate(
-    date_part = str_extract(file, "\\d{6}(?=\\.feather)"),
-    .keep = "unused"
-  ) |>
-  mutate(
-    year = as.integer(str_sub(date_part, 1, 4)),
-    month = as.integer(str_sub(date_part, 5, 6)),
+    date_part = sub(".*-(\\d{6})\\.feather$", "\\1", basename(file)),
+    year = as.integer(substr(date_part, 1, 4)),
+    month = as.integer(substr(date_part, 5, 6)),
     .keep = "unused"
   )
 
