@@ -19,7 +19,7 @@ employment_df <-
     .keep = "unused"
   )
 
-arrow::write_feather(
+arrow::write_parquet(
   employment_df,
-  "data/opm-employee-counts-dhs.feather"
+  "data/opm-employee-counts-dhs.parquet"
 )
