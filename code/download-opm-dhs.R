@@ -20,7 +20,7 @@ opm_url <- function(type, year, month, version) {
 }
 
 out_path <- function(type, year, month) {
-  glue("data/{type}-dhs-{year}{sprintf('%02d', month)}.feather")
+  glue("data/{type}-dhs-{year}{sprintf('%02d', month)}.parquet")
 }
 
 # Try one version; returns temp file path or NULL
@@ -87,7 +87,7 @@ crossing(
       show_col_types = FALSE
     ) |>
       filter(agency == DHS_AGENCY) |>
-      write_feather(out_path(type, year, month))
+      write_parquet(out_path(type, year, month), compression = "ZSTD")
 
     unlink(tmp)
   })
