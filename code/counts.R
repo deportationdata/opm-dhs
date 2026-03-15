@@ -21,5 +21,6 @@ employment_df <-
 
 arrow::write_parquet(
   employment_df,
-  "data/opm-employee-counts-dhs.parquet"
+  "data/opm-employee-counts-dhs.parquet",
+  compression = "ZSTD"
 )
