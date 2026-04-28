@@ -165,7 +165,7 @@ jobs:
           gh pr comment "${{ needs.download.outputs.pr_url }}" \
             --body-file /tmp/check-summary.md
 
-rerun-on-failure:
+  rerun-on-failure:
     needs: download
     if: failure() && fromJSON(github.run_attempt) < 3
     runs-on: ubuntu-latest
